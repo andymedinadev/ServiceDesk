@@ -16,6 +16,15 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAttachmentStorage, AttachmentStorage>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+// Handlers
+builder.Services.AddScoped<CreateTicketHandler>();
+builder.Services.AddScoped<UpdateTicketDetailsHandler>();
+builder.Services.AddScoped<SetTicketPriorityHandler>();
+builder.Services.AddScoped<AssignTicketHandler>();
+builder.Services.AddScoped<ChangeTicketStatusHandler>();
+builder.Services.AddScoped<AddTicketAttachmentHandler>();
+builder.Services.AddScoped<CloseTicketHandler>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
