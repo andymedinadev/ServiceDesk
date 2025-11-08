@@ -50,6 +50,6 @@ public class TicketController : ControllerBase
     )
     {
         var id = await _create.Handle(command, ct);
-        return CreatedAtAction(nameof(GetById), new { id });
+        return CreatedAtAction(nameof(GetById), new { id }, command);
     }
 }
