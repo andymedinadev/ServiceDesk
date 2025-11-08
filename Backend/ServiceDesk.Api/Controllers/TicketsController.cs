@@ -12,6 +12,8 @@ public class TicketController : ControllerBase
     private readonly IValidator<CreateTicketCommand> _createValidator;
     private readonly CloseTicketHandler _close;
     private readonly IValidator<CloseTicketCommand> _closeValidator;
+    private readonly UpdateTicketDetailsHandler _update;
+    private readonly IValidator<UpdateTicketDetailsCommand> _updateValidator;
 
     public TicketController(
         GetTicketByIdHandler getById,
@@ -19,7 +21,9 @@ public class TicketController : ControllerBase
         CreateTicketHandler create,
         IValidator<CreateTicketCommand> createValidator,
         CloseTicketHandler close,
-        IValidator<CloseTicketCommand> closeValidator
+        IValidator<CloseTicketCommand> closeValidator,
+        UpdateTicketDetailsHandler update,
+        IValidator<UpdateTicketDetailsCommand> updateValidator
     )
     {
         _getById = getById;
@@ -28,6 +32,8 @@ public class TicketController : ControllerBase
         _createValidator = createValidator;
         _close = close;
         _closeValidator = closeValidator;
+        _update = update;
+        _updateValidator = updateValidator;
     }
 
     [HttpGet]
@@ -109,6 +115,38 @@ public class TicketController : ControllerBase
         }
 
         await _close.Handle(command, ct);
+
+        return NoContent();
+    }
+
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> Update(
+        int id,
+        [FromBody] UpdateTicketDetailsRequest? request,
+        CancellationToken ct = default
+    )
+    {
+        if (request is null)
+        {
+            return BadRequest();
+        }
+
+        var command = new UpdateTicketDetailsCommand(
+            id,
+            request.Title,
+            request.Description,
+            request.CategoryId,
+            request.UpdatedById
+        );
+
+        var validation = await _updateValidator.ValidateAsync(command, ct);
+
+        if (!validation.IsValid)
+        {
+            return CreateValidationProblem(validation);
+        }
+
+        await _update.Handle(command, ct);
 
         return NoContent();
     }
