@@ -6,7 +6,7 @@ public class TicketComment
     public int TicketId { get; set; }
     public Ticket Ticket { get; set; } = default!;
 
-    public Guid AuthorId { get; set; }
+    public int AuthorId { get; set; }
     public User Author { get; set; } = default!;
 
     public string Body { get; set; } = default!;

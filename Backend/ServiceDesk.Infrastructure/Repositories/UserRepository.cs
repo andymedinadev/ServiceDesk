@@ -7,7 +7,7 @@ public class UserRepository : IUserRepository
 
     public UserRepository(ServiceDeskDbContext dbContext) => _dbContext = dbContext;
 
-    public Task<User?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    public Task<User?> GetByIdAsync(int id, CancellationToken ct = default)
     {
         return _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id, ct);
     }

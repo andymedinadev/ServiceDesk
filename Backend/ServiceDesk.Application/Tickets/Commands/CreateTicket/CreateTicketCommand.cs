@@ -4,6 +4,6 @@ public record CreateTicketCommand(
     string Title,
     string Description,
     int CategoryId,
-    Guid CreatedById,
+    int CreatedById,
     TicketPriority Priority = TicketPriority.Medium
 );
