@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +31,14 @@ builder.Services.AddScoped<AssignTicketHandler>();
 builder.Services.AddScoped<ChangeTicketStatusHandler>();
 builder.Services.AddScoped<AddTicketAttachmentHandler>();
 builder.Services.AddScoped<CloseTicketHandler>();
+
+// Validators
+builder.Services.AddScoped<IValidator<CreateTicketCommand>, CreateTicketCommandValidator>();
+builder.Services.AddScoped<IValidator<CloseTicketCommand>, CloseTicketCommandValidator>();
+builder.Services.AddScoped<
+    IValidator<UpdateTicketDetailsCommand>,
+    UpdateTicketDetailsCommandValidator
+>();
 
 var app = builder.Build();
 
