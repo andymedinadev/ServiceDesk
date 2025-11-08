@@ -12,14 +12,29 @@ public class TicketRepository : ITicketRepository
         await _dbContext.Tickets.AddAsync(ticket, ct);
     }
 
-    public Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        var ticket = await _dbContext.Tickets.FindAsync(new object?[] { id }, ct);
+
+        if (ticket is null)
+        {
+            return;
+        }
+
+        _dbContext.Tickets.Remove(ticket);
     }
 
-    public Task<IEnumerable<Ticket>> GetAllAsync()
+    public async Task<IReadOnlyList<Ticket>> GetAllAsync(CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        var tickets = await _dbContext
+            .Tickets.Include(t => t.Category)
+            .Include(t => t.Comments)
+            .Include(t => t.Attachments)
+            .Include(t => t.StatusHistory)
+            .AsNoTracking()
+            .ToListAsync(ct);
+
+        return tickets;
     }
 
     public Task<Ticket?> GetByIdAsync(int id, CancellationToken ct = default)

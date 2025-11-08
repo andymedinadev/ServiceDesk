@@ -24,6 +24,8 @@ builder.Services.AddScoped<IAttachmentStorage, AttachmentStorage>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Handlers
+builder.Services.AddScoped<GetTicketsHandler>();
+builder.Services.AddScoped<GetTicketByIdHandler>();
 builder.Services.AddScoped<CreateTicketHandler>();
 builder.Services.AddScoped<UpdateTicketDetailsHandler>();
 builder.Services.AddScoped<SetTicketPriorityHandler>();
