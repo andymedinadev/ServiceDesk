@@ -10,18 +10,30 @@ public class TicketController : ControllerBase
     private readonly GetTicketByIdHandler _getById;
     private readonly CreateTicketHandler _create;
     private readonly IValidator<CreateTicketCommand> _createValidator;
+    private readonly CloseTicketHandler _close;
+    private readonly IValidator<CloseTicketCommand> _closeValidator;
+    private readonly UpdateTicketDetailsHandler _update;
+    private readonly IValidator<UpdateTicketDetailsCommand> _updateValidator;
 
     public TicketController(
         GetTicketByIdHandler getById,
         GetTicketsHandler getAll,
         CreateTicketHandler create,
-        IValidator<CreateTicketCommand> createValidator
+        IValidator<CreateTicketCommand> createValidator,
+        CloseTicketHandler close,
+        IValidator<CloseTicketCommand> closeValidator,
+        UpdateTicketDetailsHandler update,
+        IValidator<UpdateTicketDetailsCommand> updateValidator
     )
     {
         _getById = getById;
         _getAll = getAll;
         _create = create;
         _createValidator = createValidator;
+        _close = close;
+        _closeValidator = closeValidator;
+        _update = update;
+        _updateValidator = updateValidator;
     }
 
     [HttpGet]
@@ -79,6 +91,64 @@ public class TicketController : ControllerBase
         var ticket = await _getById.Handle(new GetTicketByIdQuery(id), ct);
 
         return CreatedAtAction(nameof(GetById), new { id }, ticket);
+    }
+
+    [HttpPost("{id:int}/close")]
+    public async Task<IActionResult> Close(
+        int id,
+        [FromBody] CloseTicketRequest? request,
+        CancellationToken ct = default
+    )
+    {
+        if (request is null)
+        {
+            return BadRequest();
+        }
+
+        var command = new CloseTicketCommand(id, request.ClosedById);
+
+        var validation = await _closeValidator.ValidateAsync(command, ct);
+
+        if (!validation.IsValid)
+        {
+            return CreateValidationProblem(validation);
+        }
+
+        await _close.Handle(command, ct);
+
+        return NoContent();
+    }
+
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> Update(
+        int id,
+        [FromBody] UpdateTicketDetailsRequest? request,
+        CancellationToken ct = default
+    )
+    {
+        if (request is null)
+        {
+            return BadRequest();
+        }
+
+        var command = new UpdateTicketDetailsCommand(
+            id,
+            request.Title,
+            request.Description,
+            request.CategoryId,
+            request.UpdatedById
+        );
+
+        var validation = await _updateValidator.ValidateAsync(command, ct);
+
+        if (!validation.IsValid)
+        {
+            return CreateValidationProblem(validation);
+        }
+
+        await _update.Handle(command, ct);
+
+        return NoContent();
     }
 
     private ActionResult CreateValidationProblem(ValidationResult validationResult)
