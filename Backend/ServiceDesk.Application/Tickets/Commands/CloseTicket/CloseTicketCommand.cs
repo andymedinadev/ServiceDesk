@@ -1,1 +1,1 @@
-public record CloseTicketCommand(int TicketId, Guid ClosedById);
+public record CloseTicketCommand(int TicketId, int ClosedById);

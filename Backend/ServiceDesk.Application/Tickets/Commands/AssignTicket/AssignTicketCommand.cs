@@ -1,1 +1,1 @@
-public record AssignTicketCommand(int TicketId, Guid? AssignedToId, Guid ChangedById);
+public record AssignTicketCommand(int TicketId, int? AssignedToId, int ChangedById);

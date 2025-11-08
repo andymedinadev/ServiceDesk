@@ -8,7 +8,7 @@ public class TicketStatusHistory
 
     public TicketStatus FromStatus { get; set; }
     public TicketStatus ToStatus { get; set; }
-    public Guid ChangedById { get; set; }
+    public int ChangedById { get; set; }
     public User ChangedBy { get; set; } = default!;
     public DateTime ChangedAt { get; set; } = DateTime.Now;
 }

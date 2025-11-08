@@ -3,5 +3,5 @@ public record UpdateTicketDetailsCommand(
     string Title,
     string Description,
     int CategoryId,
-    Guid UpdatedById
+    int UpdatedById
 );

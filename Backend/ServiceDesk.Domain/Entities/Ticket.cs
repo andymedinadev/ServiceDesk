@@ -28,10 +28,10 @@ public class Ticket
     public int CategoryId { get; set; }
     public Category Category { get; set; } = default!;
 
-    public Guid CreatedById { get; set; }
+    public int CreatedById { get; set; }
     public User CreatedBy { get; set; } = default!;
 
-    public Guid? AssignedToId { get; set; }
+    public int? AssignedToId { get; set; }
     public User? AssignedTo { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;

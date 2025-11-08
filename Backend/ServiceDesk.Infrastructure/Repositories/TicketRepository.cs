@@ -12,7 +12,7 @@ public class TicketRepository : ITicketRepository
         await _dbContext.Tickets.AddAsync(ticket, ct);
     }
 
-    public Task DeleteAsync(Guid id)
+    public Task DeleteAsync(int id)
     {
         throw new NotImplementedException();
     }

@@ -6,7 +6,7 @@ public class TicketAttachment
     public int TicketId { get; set; }
     public Ticket Ticket { get; set; } = default!;
 
-    public Guid UploadedById { get; set; }
+    public int UploadedById { get; set; }
     public User UploadedBy { get; set; } = default!;
 
     public string FileName { get; set; } = default!;

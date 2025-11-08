@@ -2,5 +2,5 @@ using ServiceDesk.Domain.Entities;
 
 public interface IUserRepository
 {
-    Task<User?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<User?> GetByIdAsync(int id, CancellationToken ct = default);
 }
