@@ -41,6 +41,19 @@ builder.Services.AddScoped<
     IValidator<UpdateTicketDetailsCommand>,
     UpdateTicketDetailsCommandValidator
 >();
+builder.Services.AddScoped<
+    IValidator<SetTicketPriorityCommand>,
+    SetTicketPriorityCommandValidator
+>();
+builder.Services.AddScoped<IValidator<AssignTicketCommand>, AssignTicketCommandValidator>();
+builder.Services.AddScoped<
+    IValidator<ChangeTicketStatusCommand>,
+    ChangeTicketStatusCommandValidator
+>();
+builder.Services.AddScoped<
+    IValidator<AddTicketAttachmentCommand>,
+    AddTicketAttachmentCommandValidator
+>();
 
 var app = builder.Build();
 

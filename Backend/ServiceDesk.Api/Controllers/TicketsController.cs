@@ -14,6 +14,14 @@ public class TicketController : ControllerBase
     private readonly IValidator<CloseTicketCommand> _closeValidator;
     private readonly UpdateTicketDetailsHandler _update;
     private readonly IValidator<UpdateTicketDetailsCommand> _updateValidator;
+    private readonly AssignTicketHandler _assign;
+    private readonly IValidator<AssignTicketCommand> _assignValidator;
+    private readonly SetTicketPriorityHandler _setPriority;
+    private readonly IValidator<SetTicketPriorityCommand> _setPriorityValidator;
+    private readonly ChangeTicketStatusHandler _changeStatus;
+    private readonly IValidator<ChangeTicketStatusCommand> _changeStatusValidator;
+    private readonly AddTicketAttachmentHandler _addAttachment;
+    private readonly IValidator<AddTicketAttachmentCommand> _addAttachmentValidator;
 
     public TicketController(
         GetTicketByIdHandler getById,
@@ -23,7 +31,15 @@ public class TicketController : ControllerBase
         CloseTicketHandler close,
         IValidator<CloseTicketCommand> closeValidator,
         UpdateTicketDetailsHandler update,
-        IValidator<UpdateTicketDetailsCommand> updateValidator
+        IValidator<UpdateTicketDetailsCommand> updateValidator,
+        AssignTicketHandler assign,
+        IValidator<AssignTicketCommand> assignValidator,
+        SetTicketPriorityHandler setPriority,
+        IValidator<SetTicketPriorityCommand> setPriorityValidator,
+        ChangeTicketStatusHandler changeStatus,
+        IValidator<ChangeTicketStatusCommand> changeStatusValidator,
+        AddTicketAttachmentHandler addAttachment,
+        IValidator<AddTicketAttachmentCommand> addAttachmentValidator
     )
     {
         _getById = getById;
@@ -34,6 +50,14 @@ public class TicketController : ControllerBase
         _closeValidator = closeValidator;
         _update = update;
         _updateValidator = updateValidator;
+        _assign = assign;
+        _assignValidator = assignValidator;
+        _setPriority = setPriority;
+        _setPriorityValidator = setPriorityValidator;
+        _changeStatus = changeStatus;
+        _changeStatusValidator = changeStatusValidator;
+        _addAttachment = addAttachment;
+        _addAttachmentValidator = addAttachmentValidator;
     }
 
     [HttpGet]
@@ -149,6 +173,117 @@ public class TicketController : ControllerBase
         await _update.Handle(command, ct);
 
         return NoContent();
+    }
+
+    [HttpPost("{id:int}/assign")]
+    public async Task<IActionResult> Assign(
+        int id,
+        [FromBody] AssignTicketRequest? request,
+        CancellationToken ct = default
+    )
+    {
+        if (request is null)
+        {
+            return BadRequest();
+        }
+
+        var command = new AssignTicketCommand(id, request.AssignedToId, request.ChangedById);
+
+        var validation = await _assignValidator.ValidateAsync(command, ct);
+
+        if (!validation.IsValid)
+        {
+            return CreateValidationProblem(validation);
+        }
+
+        await _assign.Handle(command, ct);
+
+        return NoContent();
+    }
+
+    [HttpPost("{id:int}/priority")]
+    public async Task<IActionResult> SetPriority(
+        int id,
+        [FromBody] SetTicketPriorityRequest? request,
+        CancellationToken ct = default
+    )
+    {
+        if (request is null)
+        {
+            return BadRequest();
+        }
+
+        var command = new SetTicketPriorityCommand(id, request.Priority, request.ChangedById);
+
+        var validation = await _setPriorityValidator.ValidateAsync(command, ct);
+
+        if (!validation.IsValid)
+        {
+            return CreateValidationProblem(validation);
+        }
+
+        await _setPriority.Handle(command, ct);
+
+        return NoContent();
+    }
+
+    [HttpPost("{id:int}/status")]
+    public async Task<IActionResult> ChangeStatus(
+        int id,
+        [FromBody] ChangeTicketStatusRequest? request,
+        CancellationToken ct = default
+    )
+    {
+        if (request is null)
+        {
+            return BadRequest();
+        }
+
+        var command = new ChangeTicketStatusCommand(id, request.NewStatus, request.ChangeById);
+
+        var validation = await _changeStatusValidator.ValidateAsync(command, ct);
+
+        if (!validation.IsValid)
+        {
+            return CreateValidationProblem(validation);
+        }
+
+        await _changeStatus.Handle(command, ct);
+
+        return NoContent();
+    }
+
+    [HttpPost("{id:int}/attachment")]
+    public async Task<IActionResult> AddAttachment(
+        int id,
+        [FromBody] AddTicketAttachmentRequest request,
+        CancellationToken ct = default
+    )
+    {
+        if (request is null)
+        {
+            return BadRequest();
+        }
+
+        var command = new AddTicketAttachmentCommand(
+            id,
+            request.FileName,
+            request.Content,
+            request.UploadedById
+        );
+
+        var validation = await _addAttachmentValidator.ValidateAsync(command, ct);
+
+        if (!validation.IsValid)
+        {
+            return CreateValidationProblem(validation);
+        }
+
+        var attachmentId = await _addAttachment.Handle(command, ct);
+
+        var response = new AddTicketAttachmentResponse(attachmentId);
+
+        return CreatedAtAction(nameof(GetById), new { id }, response);
     }
 
     private ActionResult CreateValidationProblem(ValidationResult validationResult)
