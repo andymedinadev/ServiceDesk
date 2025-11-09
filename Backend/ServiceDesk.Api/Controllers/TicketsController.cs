@@ -18,6 +18,8 @@ public class TicketController : ControllerBase
     private readonly IValidator<AssignTicketCommand> _assignValidator;
     private readonly SetTicketPriorityHandler _setPriority;
     private readonly IValidator<SetTicketPriorityCommand> _setPriorityValidator;
+    private readonly ChangeTicketStatusHandler _changeStatus;
+    private readonly IValidator<ChangeTicketStatusCommand> _changeStatusValidator;
 
     public TicketController(
         GetTicketByIdHandler getById,
@@ -31,7 +33,9 @@ public class TicketController : ControllerBase
         AssignTicketHandler assign,
         IValidator<AssignTicketCommand> assignValidator,
         SetTicketPriorityHandler setPriority,
-        IValidator<SetTicketPriorityCommand> setPriorityValidator
+        IValidator<SetTicketPriorityCommand> setPriorityValidator,
+        ChangeTicketStatusHandler changeStatus,
+        IValidator<ChangeTicketStatusCommand> changeStatusValidator
     )
     {
         _getById = getById;
@@ -46,6 +50,8 @@ public class TicketController : ControllerBase
         _assignValidator = assignValidator;
         _setPriority = setPriority;
         _setPriorityValidator = setPriorityValidator;
+        _changeStatus = changeStatus;
+        _changeStatusValidator = changeStatusValidator;
     }
 
     [HttpGet]
@@ -211,6 +217,32 @@ public class TicketController : ControllerBase
         }
 
         await _setPriority.Handle(command, ct);
+
+        return NoContent();
+    }
+
+    [HttpPost("{id:int}/status")]
+    public async Task<IActionResult> ChangeStatus(
+        int id,
+        [FromBody] ChangeTicketStatusRequest? request,
+        CancellationToken ct = default
+    )
+    {
+        if (request is null)
+        {
+            return BadRequest();
+        }
+
+        var command = new ChangeTicketStatusCommand(id, request.NewStatus, request.ChangeById);
+
+        var validation = await _changeStatusValidator.ValidateAsync(command, ct);
+
+        if (!validation.IsValid)
+        {
+            return CreateValidationProblem(validation);
+        }
+
+        await _changeStatus.Handle(command, ct);
 
         return NoContent();
     }
