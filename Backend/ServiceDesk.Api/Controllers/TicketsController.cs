@@ -16,6 +16,8 @@ public class TicketController : ControllerBase
     private readonly IValidator<UpdateTicketDetailsCommand> _updateValidator;
     private readonly AssignTicketHandler _assign;
     private readonly IValidator<AssignTicketCommand> _assignValidator;
+    private readonly SetTicketPriorityHandler _setPriority;
+    private readonly IValidator<SetTicketPriorityCommand> _setPriorityValidator;
 
     public TicketController(
         GetTicketByIdHandler getById,
@@ -27,7 +29,9 @@ public class TicketController : ControllerBase
         UpdateTicketDetailsHandler update,
         IValidator<UpdateTicketDetailsCommand> updateValidator,
         AssignTicketHandler assign,
-        IValidator<AssignTicketCommand> assignValidator
+        IValidator<AssignTicketCommand> assignValidator,
+        SetTicketPriorityHandler setPriority,
+        IValidator<SetTicketPriorityCommand> setPriorityValidator
     )
     {
         _getById = getById;
@@ -40,6 +44,8 @@ public class TicketController : ControllerBase
         _updateValidator = updateValidator;
         _assign = assign;
         _assignValidator = assignValidator;
+        _setPriority = setPriority;
+        _setPriorityValidator = setPriorityValidator;
     }
 
     [HttpGet]
@@ -179,6 +185,32 @@ public class TicketController : ControllerBase
         }
 
         await _assign.Handle(command, ct);
+
+        return NoContent();
+    }
+
+    [HttpPost("{id:int}/priority")]
+    public async Task<IActionResult> SetPriority(
+        int id,
+        [FromBody] SetTicketPriorityRequest? request,
+        CancellationToken ct = default
+    )
+    {
+        if (request is null)
+        {
+            return BadRequest();
+        }
+
+        var command = new SetTicketPriorityCommand(id, request.Priority, request.ChangedById);
+
+        var validation = await _setPriorityValidator.ValidateAsync(command, ct);
+
+        if (!validation.IsValid)
+        {
+            return CreateValidationProblem(validation);
+        }
+
+        await _setPriority.Handle(command, ct);
 
         return NoContent();
     }
