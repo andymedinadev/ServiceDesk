@@ -50,6 +50,10 @@ builder.Services.AddScoped<
     IValidator<ChangeTicketStatusCommand>,
     ChangeTicketStatusCommandValidator
 >();
+builder.Services.AddScoped<
+    IValidator<AddTicketAttachmentCommand>,
+    AddTicketAttachmentCommandValidator
+>();
 
 var app = builder.Build();
 
