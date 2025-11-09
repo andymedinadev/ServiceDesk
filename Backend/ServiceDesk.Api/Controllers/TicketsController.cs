@@ -14,6 +14,8 @@ public class TicketController : ControllerBase
     private readonly IValidator<CloseTicketCommand> _closeValidator;
     private readonly UpdateTicketDetailsHandler _update;
     private readonly IValidator<UpdateTicketDetailsCommand> _updateValidator;
+    private readonly AssignTicketHandler _assign;
+    private readonly IValidator<AssignTicketCommand> _assignValidator;
 
     public TicketController(
         GetTicketByIdHandler getById,
@@ -23,7 +25,9 @@ public class TicketController : ControllerBase
         CloseTicketHandler close,
         IValidator<CloseTicketCommand> closeValidator,
         UpdateTicketDetailsHandler update,
-        IValidator<UpdateTicketDetailsCommand> updateValidator
+        IValidator<UpdateTicketDetailsCommand> updateValidator,
+        AssignTicketHandler assign,
+        IValidator<AssignTicketCommand> assignValidator
     )
     {
         _getById = getById;
@@ -34,6 +38,8 @@ public class TicketController : ControllerBase
         _closeValidator = closeValidator;
         _update = update;
         _updateValidator = updateValidator;
+        _assign = assign;
+        _assignValidator = assignValidator;
     }
 
     [HttpGet]
@@ -147,6 +153,32 @@ public class TicketController : ControllerBase
         }
 
         await _update.Handle(command, ct);
+
+        return NoContent();
+    }
+
+    [HttpPost("{id:int}/assign")]
+    public async Task<IActionResult> Assign(
+        int id,
+        [FromBody] AssignTicketRequest? request,
+        CancellationToken ct = default
+    )
+    {
+        if (request is null)
+        {
+            return BadRequest();
+        }
+
+        var command = new AssignTicketCommand(id, request.AssignedToId, request.ChangedById);
+
+        var validation = await _assignValidator.ValidateAsync(command, ct);
+
+        if (!validation.IsValid)
+        {
+            return CreateValidationProblem(validation);
+        }
+
+        await _assign.Handle(command, ct);
 
         return NoContent();
     }
