@@ -20,6 +20,8 @@ public class TicketController : ControllerBase
     private readonly IValidator<SetTicketPriorityCommand> _setPriorityValidator;
     private readonly ChangeTicketStatusHandler _changeStatus;
     private readonly IValidator<ChangeTicketStatusCommand> _changeStatusValidator;
+    private readonly AddTicketAttachmentHandler _addAttachment;
+    private readonly IValidator<AddTicketAttachmentCommand> _addAttachmentValidator;
 
     public TicketController(
         GetTicketByIdHandler getById,
@@ -35,7 +37,9 @@ public class TicketController : ControllerBase
         SetTicketPriorityHandler setPriority,
         IValidator<SetTicketPriorityCommand> setPriorityValidator,
         ChangeTicketStatusHandler changeStatus,
-        IValidator<ChangeTicketStatusCommand> changeStatusValidator
+        IValidator<ChangeTicketStatusCommand> changeStatusValidator,
+        AddTicketAttachmentHandler addAttachment,
+        IValidator<AddTicketAttachmentCommand> addAttachmentValidator
     )
     {
         _getById = getById;
@@ -52,6 +56,8 @@ public class TicketController : ControllerBase
         _setPriorityValidator = setPriorityValidator;
         _changeStatus = changeStatus;
         _changeStatusValidator = changeStatusValidator;
+        _addAttachment = addAttachment;
+        _addAttachmentValidator = addAttachmentValidator;
     }
 
     [HttpGet]
@@ -245,6 +251,39 @@ public class TicketController : ControllerBase
         await _changeStatus.Handle(command, ct);
 
         return NoContent();
+    }
+
+    [HttpPost("{id:int}/attachment")]
+    public async Task<IActionResult> AddAttachment(
+        int id,
+        [FromBody] AddTicketAttachmentRequest request,
+        CancellationToken ct = default
+    )
+    {
+        if (request is null)
+        {
+            return BadRequest();
+        }
+
+        var command = new AddTicketAttachmentCommand(
+            id,
+            request.FileName,
+            request.Content,
+            request.UploadedById
+        );
+
+        var validation = await _addAttachmentValidator.ValidateAsync(command, ct);
+
+        if (!validation.IsValid)
+        {
+            return CreateValidationProblem(validation);
+        }
+
+        var attachmentId = await _addAttachment.Handle(command, ct);
+
+        var response = new AddTicketAttachmentResponse(attachmentId);
+
+        return CreatedAtAction(nameof(GetById), new { id }, response);
     }
 
     private ActionResult CreateValidationProblem(ValidationResult validationResult)
